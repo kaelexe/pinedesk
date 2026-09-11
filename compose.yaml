@@ -1,0 +1,55 @@
+name: pinedesk
+
+services:
+  client:
+    image: node:22-bookworm-slim
+    working_dir: /app
+    command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - ./client:/app
+      - client_node_modules:/app/node_modules
+
+  server:
+    build:
+      context: ./docker/php
+    working_dir: /app
+    command: php spark serve --host 0.0.0.0 --port 8080
+    volumes:
+      - ./server:/app
+    environment:
+      CI_ENVIRONMENT: development
+      app_baseURL: "http://localhost:5173/"
+      app_indexPage: ""
+      database_default_hostname: db
+      database_default_database: ${MYSQL_DATABASE}
+      database_default_username: ${MYSQL_USER}
+      database_default_password: ${MYSQL_PASSWORD}
+      database_default_DBDriver: MySQLi
+      database_default_port: "3306"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'mysql --protocol=TCP -h 127.0.0.1 -u"$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" "$${MYSQL_DATABASE}" -e "SELECT 1"'
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  client_node_modules:
+  mysql_data:

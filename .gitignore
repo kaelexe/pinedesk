@@ -1,0 +1,24 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and generated output
+client/node_modules/
+client/dist/
+server/vendor/
+
+# Runtime files; preserve framework placeholder files
+server/writable/**
+!server/writable/**/
+!server/writable/**/.gitkeep
+!server/writable/**/index.html
+!server/writable/.htaccess
+
+# Editor and operating-system files
+.idea/
+.DS_Store
+Thumbs.db
